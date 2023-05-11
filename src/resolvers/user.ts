@@ -1,4 +1,4 @@
-import { Arg, Mutation, Resolver, Args } from "type-graphql";
+import { Arg, Mutation, Resolver } from "type-graphql";
 import { User } from "../entities/User";
 import argon2 from "argon2";
 
@@ -16,5 +16,21 @@ export class UserResolver {
 
 		user.password = await argon2.hash(password);
 		return await user.save();
+	}
+
+	@Mutation(() => String)
+	async login(
+		@Arg("username") username: string,
+		@Arg("password") password: string
+	): Promise<string> {
+		const user = await User.findOneBy({ username });
+		if (user) {
+			const valid = await argon2.verify(user.password, password);
+			if (valid) {
+				return "sucess";
+			}
+			return "invalid password";
+		}
+		return "invalid username";
 	}
 }
