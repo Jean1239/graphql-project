@@ -1,6 +1,7 @@
 import { Arg, Mutation, Resolver } from "type-graphql";
 import { User } from "../entities/User";
 import argon2 from "argon2";
+import jwt from "jsonwebtoken";
 
 @Resolver()
 export class UserResolver {
@@ -24,13 +25,17 @@ export class UserResolver {
 		@Arg("password") password: string
 	): Promise<string> {
 		const user = await User.findOneBy({ username });
-		if (user) {
-			const valid = await argon2.verify(user.password, password);
-			if (valid) {
-				return "sucess";
-			}
-			return "invalid password";
+		if (!user) {
+			return "";
 		}
-		return "invalid username";
+		const valid = await argon2.verify(user.password, password);
+		if (!valid) {
+			return "";
+		}
+
+		const token = jwt.sign(user.id.toString(), "teste", {
+			algorithm: "HS256",
+		});
+		return token;
 	}
 }

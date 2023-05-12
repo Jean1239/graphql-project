@@ -5,50 +5,39 @@ import { buildSchema } from "type-graphql";
 import { HelloResolver } from "./resolvers/hello";
 import express from "express";
 import { json } from "body-parser";
-import { DataSource } from "typeorm";
-import { Post } from "./entities/Post";
 import { PostResolver } from "./resolvers/post";
-import { User } from "./entities/User";
 import { UserResolver } from "./resolvers/user";
+import { authenticate } from "./auth";
+import { MyContext } from "./types";
+import cors from "cors";
+import { appDataSource } from "./dataSource";
 
 const main = async () => {
-	const appDataSource = new DataSource({
-		type: "postgres",
-		host: "localhost",
-		port: 5432,
-		username: "jean",
-		password: "!senha148)",
-		database: "graphql",
-		synchronize: true,
-		logging: true,
-		entities: [Post, User],
-	});
-
-	appDataSource
-		.initialize()
-		.then(() => {
-			console.log("Data Source has been initialized!");
-		})
-		.catch((err) => {
-			console.error("Error during Data Source initialization", err);
-		});
+	appDataSource.initialize();
 
 	const app = express();
 
 	const apolloServer = new ApolloServer({
 		schema: await buildSchema({
 			resolvers: [HelloResolver, PostResolver, UserResolver],
+			authChecker: authenticate,
+			authMode: "null",
 		}),
 	});
 
 	await apolloServer.start();
-	app.use("/graphql", json(), expressMiddleware(apolloServer));
+	app.use(
+		"/graphql",
+		json(),
+		cors<cors.CorsRequest>(),
+		expressMiddleware(apolloServer, {
+			context: async ({ req, res }): Promise<MyContext> => ({ req, res }),
+		})
+	);
 
 	app.listen("4000", () => {
 		console.log("Servidor iniciado em localhost:4000");
 	});
 };
 
-main().catch((err) => {
-	console.error(err);
-});
+main().catch((error) => console.log(error));

@@ -1,9 +1,10 @@
-import { Query, Resolver } from "type-graphql";
+import { Authorized, Query, Resolver } from "type-graphql";
 
 @Resolver()
 export class HelloResolver {
-    @Query(() => String)
-    hello() {
-        return "hello world";
-    }
+	@Authorized()
+	@Query(() => String)
+	hello() {
+		return "hello world";
+	}
 }
