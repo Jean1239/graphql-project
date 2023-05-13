@@ -11,6 +11,7 @@ import { authenticate } from "./auth";
 import { MyContext } from "./types";
 import cors from "cors";
 import { appDataSource } from "./dataSource";
+import "dotenv-safe/config";
 
 const main = async () => {
 	appDataSource.initialize();
@@ -21,7 +22,6 @@ const main = async () => {
 		schema: await buildSchema({
 			resolvers: [HelloResolver, PostResolver, UserResolver],
 			authChecker: authenticate,
-			authMode: "null",
 		}),
 	});
 
@@ -31,7 +31,10 @@ const main = async () => {
 		json(),
 		cors<cors.CorsRequest>(),
 		expressMiddleware(apolloServer, {
-			context: async ({ req, res }): Promise<MyContext> => ({ req, res }),
+			context: async ({ req, res }): Promise<MyContext> => {
+				const token = req.headers.authorization || "";
+				return { req, res, token };
+			},
 		})
 	);
 

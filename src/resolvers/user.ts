@@ -1,22 +1,29 @@
 import { Arg, Mutation, Resolver } from "type-graphql";
 import { User } from "../entities/User";
 import argon2 from "argon2";
-import jwt from "jsonwebtoken";
+import { createToken } from "../utils/jwtFunctions";
 
 @Resolver()
 export class UserResolver {
-	@Mutation(() => User)
+	@Mutation(() => String)
 	async register(
 		@Arg("username") username: string,
 		@Arg("password") password: string,
 		@Arg("email") email: string
-	): Promise<User | null> {
+	): Promise<string> {
 		const user = new User();
 		user.username = username;
 		user.email = email;
 
 		user.password = await argon2.hash(password);
-		return await user.save();
+		try {
+			await user.save();
+			const token = createToken({ id: user.id });
+			return token;
+		} catch (error) {
+			console.log(error);
+			throw new Error("Erro ao criar a conta");
+		}
 	}
 
 	@Mutation(() => String)
@@ -26,16 +33,14 @@ export class UserResolver {
 	): Promise<string> {
 		const user = await User.findOneBy({ username });
 		if (!user) {
-			return "";
+			throw new Error("Falha no login");
 		}
 		const valid = await argon2.verify(user.password, password);
 		if (!valid) {
-			return "";
+			throw new Error("Falha no login");
 		}
 
-		const token = jwt.sign(user.id.toString(), "teste", {
-			algorithm: "HS256",
-		});
+		const token = createToken({ id: user.id });
 		return token;
 	}
 }

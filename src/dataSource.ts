@@ -9,7 +9,7 @@ export const appDataSource = new DataSource({
 	username: "jean",
 	password: "!senha148)",
 	database: "graphql",
-	synchronize: true,
+	// synchronize: true,
 	logging: true,
 	entities: [Post, User],
 });
