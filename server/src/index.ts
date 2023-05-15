@@ -20,7 +20,6 @@ import { sendRefreshToken } from "./sendRefreshToken";
 
 const main = async () => {
 	appDataSource.initialize();
-
 	const app = express();
 
 	const apolloServer = new ApolloServer({
@@ -43,6 +42,7 @@ const main = async () => {
 			},
 		})
 	);
+
 	app.post("/refresh_token", async (req, res) => {
 		const token = req.cookies.jid;
 		if (!token) {
@@ -51,7 +51,7 @@ const main = async () => {
 
 		let payload: any = null;
 		try {
-			payload = verify(token, process.env.JWT_SECRET);
+			payload = verify(token, process.env.REFRESH_TOKEN_SECRET);
 		} catch (error) {
 			console.log(error);
 			return res.send({ ok: false, accessToken: "" });
@@ -62,7 +62,7 @@ const main = async () => {
 			return res.send({ ok: false, accessToken: "" });
 		}
 
-		if (user.tokenVersion !== payload.tokenVersion) {
+		if (user.token_version !== payload.tokenVersion) {
 			return res.send({ ok: false, accessToken: "" });
 		}
 

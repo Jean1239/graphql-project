@@ -1,4 +1,4 @@
-import { Arg, Ctx, Mutation, Resolver } from "type-graphql";
+import { Arg, Ctx, Int, Mutation, Resolver } from "type-graphql";
 import { User } from "../entities/User";
 import argon2 from "argon2";
 import { createAccessToken, createRefreshToken } from "../utils/jwtFunctions";
@@ -46,5 +46,13 @@ export class UserResolver {
 		sendRefreshToken(res, createRefreshToken(user));
 
 		return createAccessToken(user);
+	}
+
+	@Mutation(() => Boolean)
+	async revokeToken(
+		@Arg("userId", () => Int) userId: number
+	): Promise<boolean> {
+		await User.getRepository().increment({ id: userId }, "tokenVersion", 1);
+		return true;
 	}
 }

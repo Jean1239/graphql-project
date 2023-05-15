@@ -9,7 +9,7 @@ export const authenticate: AuthChecker<MyContext> = async ({ context }) => {
 	}
 	try {
 		const token = authorization.split(" ")[1];
-		const payload = verify(token, process.env.JWT_SECRET);
+		const payload = verify(token, process.env.ACCESS_TOKEN_SECRET);
 		context.payload = payload as any;
 	} catch (error) {
 		console.log(error);
