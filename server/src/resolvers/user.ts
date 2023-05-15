@@ -52,7 +52,11 @@ export class UserResolver {
 	async revokeToken(
 		@Arg("userId", () => Int) userId: number
 	): Promise<boolean> {
-		await User.getRepository().increment({ id: userId }, "tokenVersion", 1);
+		await User.getRepository().increment(
+			{ id: userId },
+			"token_version",
+			1
+		);
 		return true;
 	}
 }
