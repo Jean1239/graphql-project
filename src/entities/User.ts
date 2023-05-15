@@ -1,10 +1,10 @@
 import {
-    Entity,
-    Column,
-    PrimaryGeneratedColumn,
-    CreateDateColumn,
-    UpdateDateColumn,
-    BaseEntity,
+	Entity,
+	Column,
+	PrimaryGeneratedColumn,
+	CreateDateColumn,
+	UpdateDateColumn,
+	BaseEntity,
 } from "typeorm";
 import {} from "graphql";
 import { Field, ObjectType } from "type-graphql";
@@ -12,26 +12,29 @@ import { Field, ObjectType } from "type-graphql";
 @ObjectType()
 @Entity()
 export class User extends BaseEntity {
-    @Field()
-    @PrimaryGeneratedColumn()
-    id: number;
+	@Field()
+	@PrimaryGeneratedColumn()
+	id: number;
 
-    @Field()
-    @Column({ unique: true })
-    username: string;
+	@Field()
+	@Column({ unique: true })
+	username: string;
 
-    @Field()
-    @Column()
-    email: string;
+	@Field()
+	@Column()
+	email: string;
 
-    @Column()
-    password: string;
+	@Column()
+	password: string;
 
-    @Field()
-    @CreateDateColumn()
-    created_at: Date;
+	@Column("int", { default: 0 })
+	tokenVersion: number;
 
-    @Field()
-    @UpdateDateColumn()
-    updated_at: Date;
+	@Field()
+	@CreateDateColumn()
+	created_at: Date;
+
+	@Field()
+	@UpdateDateColumn()
+	updated_at: Date;
 }

@@ -1,15 +1,18 @@
-import jwt from "jsonwebtoken";
+import { sign } from "jsonwebtoken";
+import { User } from "../entities/User";
 
-interface UserInterface {
-	id: number;
-}
-
-export const createToken = (user: UserInterface): string => {
-	const token = jwt.sign(user, process.env.JWT_SECRET);
-	return token;
+export const createAccessToken = (user: User) => {
+	return sign({ userId: user.id }, process.env.JWT_SECRET, {
+		expiresIn: "15m",
+	});
 };
 
-export const decodeToken = (token: string): UserInterface => {
-	const user = jwt.verify(token, process.env.JWT_SECRET);
-	return <UserInterface>user;
+export const createRefreshToken = (user: User) => {
+	return sign(
+		{ userId: user.id, tokenVersion: user.tokenVersion },
+		process.env.JWT_SECRET,
+		{
+			expiresIn: "7d",
+		}
+	);
 };

@@ -7,11 +7,16 @@ import express from "express";
 import { json } from "body-parser";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
-import { authenticate } from "./auth";
 import { MyContext } from "./types";
 import cors from "cors";
 import { appDataSource } from "./dataSource";
 import "dotenv-safe/config";
+import { authenticate } from "./auth";
+import cookieParser from "cookie-parser";
+import { verify } from "jsonwebtoken";
+import { User } from "./entities/User";
+import { createAccessToken, createRefreshToken } from "./utils/jwtFunctions";
+import { sendRefreshToken } from "./sendRefreshToken";
 
 const main = async () => {
 	appDataSource.initialize();
@@ -26,17 +31,44 @@ const main = async () => {
 	});
 
 	await apolloServer.start();
+	app.use(cookieParser());
 	app.use(
 		"/graphql",
 		json(),
 		cors<cors.CorsRequest>(),
+		cookieParser(),
 		expressMiddleware(apolloServer, {
 			context: async ({ req, res }): Promise<MyContext> => {
-				const token = req.headers.authorization || "";
-				return { req, res, token };
+				return { req, res };
 			},
 		})
 	);
+	app.post("/refresh_token", async (req, res) => {
+		const token = req.cookies.jid;
+		if (!token) {
+			return res.send({ ok: false, accessToken: "" });
+		}
+
+		let payload: any = null;
+		try {
+			payload = verify(token, process.env.JWT_SECRET);
+		} catch (error) {
+			console.log(error);
+			return res.send({ ok: false, accessToken: "" });
+		}
+
+		const user = await User.findOneBy({ id: payload.userId });
+		if (!user) {
+			return res.send({ ok: false, accessToken: "" });
+		}
+
+		if (user.tokenVersion !== payload.tokenVersion) {
+			return res.send({ ok: false, accessToken: "" });
+		}
+
+		sendRefreshToken(res, createRefreshToken(user));
+		return res.send({ ok: true, accessToken: createAccessToken(user) });
+	});
 
 	app.listen("4000", () => {
 		console.log("Servidor iniciado em localhost:4000");

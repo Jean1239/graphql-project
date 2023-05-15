@@ -1,7 +1,9 @@
-import { Arg, Mutation, Resolver } from "type-graphql";
+import { Arg, Ctx, Mutation, Resolver } from "type-graphql";
 import { User } from "../entities/User";
 import argon2 from "argon2";
-import { createToken } from "../utils/jwtFunctions";
+import { createAccessToken, createRefreshToken } from "../utils/jwtFunctions";
+import { MyContext } from "../types";
+import { sendRefreshToken } from "../sendRefreshToken";
 
 @Resolver()
 export class UserResolver {
@@ -18,7 +20,7 @@ export class UserResolver {
 		user.password = await argon2.hash(password);
 		try {
 			await user.save();
-			const token = createToken({ id: user.id });
+			const token = createAccessToken(user);
 			return token;
 		} catch (error) {
 			console.log(error);
@@ -29,18 +31,20 @@ export class UserResolver {
 	@Mutation(() => String)
 	async login(
 		@Arg("username") username: string,
-		@Arg("password") password: string
+		@Arg("password") password: string,
+		@Ctx() { res }: MyContext
 	): Promise<string> {
 		const user = await User.findOneBy({ username });
 		if (!user) {
-			throw new Error("Falha no login");
+			throw new Error("Username não existe");
 		}
 		const valid = await argon2.verify(user.password, password);
 		if (!valid) {
-			throw new Error("Falha no login");
+			throw new Error("Senha incorreta");
 		}
 
-		const token = createToken({ id: user.id });
-		return token;
+		sendRefreshToken(res, createRefreshToken(user));
+
+		return createAccessToken(user);
 	}
 }

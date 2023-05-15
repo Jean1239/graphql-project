@@ -3,5 +3,5 @@ import { Request, Response } from "express";
 export type MyContext = {
 	req: Request;
 	res: Response;
-	token: string;
+	payload?: { userId: string };
 };
