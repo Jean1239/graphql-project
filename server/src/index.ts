@@ -30,11 +30,16 @@ const main = async () => {
 	});
 
 	await apolloServer.start();
-	app.use(cookieParser());
+	app.use(
+		cors({
+			credentials: true,
+			origin: "https://sandbox.embed.apollographql.com",
+		}),
+		cookieParser()
+	);
 	app.use(
 		"/graphql",
 		json(),
-		cors<cors.CorsRequest>(),
 		cookieParser(),
 		expressMiddleware(apolloServer, {
 			context: async ({ req, res }): Promise<MyContext> => {
