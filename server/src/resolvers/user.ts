@@ -72,7 +72,7 @@ export class UserResolver {
 	}
 
 	@Query(() => User, { nullable: true })
-	async Me(@Ctx() { req }: MyContext): Promise<User | null> {
+	async me(@Ctx() { req }: MyContext): Promise<User | null> {
 		const authorization = req.headers.authorization;
 		if (!authorization) {
 			return null;
