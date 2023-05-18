@@ -33,7 +33,7 @@ const main = async () => {
 	app.use(
 		cors({
 			credentials: true,
-			origin: "https://sandbox.embed.apollographql.com",
+			origin: "http://localhost:3000",
 		}),
 		cookieParser()
 	);

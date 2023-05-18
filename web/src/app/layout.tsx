@@ -1,3 +1,4 @@
+import Nav from "./navbar";
 import { Providers } from "./providers";
 
 export default function RootLayout({
@@ -8,7 +9,10 @@ export default function RootLayout({
 	return (
 		<html lang="pt-br">
 			<body>
-				<Providers>{children}</Providers>
+				<Providers>
+					<Nav />
+					{children}
+				</Providers>
 			</body>
 		</html>
 	);
