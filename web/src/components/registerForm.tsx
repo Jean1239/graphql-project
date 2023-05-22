@@ -1,4 +1,5 @@
 "use client";
+import { RegisterDocument } from "@/graphql/generated/graphql";
 import { useMutation } from "@apollo/client";
 import { useForm, SubmitHandler } from "react-hook-form";
 
@@ -9,13 +10,10 @@ type Inputs = {
 };
 
 export function RegisterForm() {
-	const {
-		register,
-		handleSubmit,
-		formState: { errors },
-		watch,
-	} = useForm<Inputs>();
-	const onSubmit: SubmitHandler<Inputs> = (data) => {
+	const [registerMutation] = useMutation(RegisterDocument);
+	const { register, handleSubmit } = useForm<Inputs>();
+	const onSubmit: SubmitHandler<Inputs> = async (values) => {
+		const { data } = await registerMutation({ variables: values });
 		console.log(data);
 	};
 
