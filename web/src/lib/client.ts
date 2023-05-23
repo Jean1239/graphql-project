@@ -3,9 +3,11 @@ import { registerApolloClient } from "@apollo/experimental-nextjs-app-support/rs
 
 export const { getClient } = registerApolloClient(() => {
 	return new ApolloClient({
+		credentials: "include",
 		cache: new InMemoryCache(),
 		link: new HttpLink({
 			uri: "http://localhost:4000/graphql",
+			credentials: "include",
 		}),
 	});
 });

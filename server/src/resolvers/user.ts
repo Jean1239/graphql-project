@@ -29,7 +29,8 @@ export class UserResolver {
 	async register(
 		@Arg("username") username: string,
 		@Arg("password") password: string,
-		@Arg("email") email: string
+		@Arg("email") email: string,
+		@Ctx() { res }: MyContext
 	): Promise<LoginResponse> {
 		const user = new User();
 		user.username = username;
@@ -38,6 +39,7 @@ export class UserResolver {
 		user.password = await argon2.hash(password);
 		try {
 			await user.save();
+			sendRefreshToken(res, createRefreshToken(user));
 			return { accessToken: createAccessToken(user), user: user };
 		} catch (error) {
 			console.log(error);
