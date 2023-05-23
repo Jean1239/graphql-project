@@ -1,90 +1,80 @@
 "use client";
-import { RegisterDocument } from "@/graphql/generated/graphql";
+import { Form } from "@/components/form";
+import { useForm, FormProvider } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@apollo/client";
+import { RegisterDocument } from "@/graphql/generated/graphql";
 import { useRouter } from "next/navigation";
-import { useForm, SubmitHandler } from "react-hook-form";
 
-type Inputs = {
-	username: string;
-	email: string;
-	password: string;
-};
+const createUserFormSchema = z.object({
+	username: z
+		.string()
+		.nonempty({ message: "O username é obrigatório" })
+		.toLowerCase(),
+	email: z
+		.string()
+		.nonempty({ message: "O email é obrigatório" })
+		.email({ message: "Formato de email inválido" })
+		.toLowerCase(),
+	password: z
+		.string()
+		.nonempty({ message: "A senha é obrigatória" })
+		.min(6, { message: "A senha precisa ter no mínimo 6 caracteres" }),
+});
+
+type CreateUserData = z.infer<typeof createUserFormSchema>;
 
 export default function Register() {
 	const router = useRouter();
 	const [registerMutation] = useMutation(RegisterDocument);
-	const { register, handleSubmit } = useForm<Inputs>();
-	const onSubmit: SubmitHandler<Inputs> = async (values) => {
-		const { data } = await registerMutation({ variables: values });
-		console.log(data);
+	const createUserForm = useForm<CreateUserData>({
+		resolver: zodResolver(createUserFormSchema),
+	});
+	const {
+		handleSubmit,
+		formState: { isSubmitting },
+	} = createUserForm;
+
+	async function createUser(data: CreateUserData) {
+		const response = await registerMutation({ variables: data });
+		console.log(response);
 		router.push("/");
-	};
+	}
 
 	return (
-		<div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
-			<div className="sm:mx-auto sm:w-full sm:max-w-sm">
-				{/* eslint-disable-next-line @next/next/no-img-element */}
-				<img
-					className="mx-auto h-10 w-auto"
-					src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-					alt="Your Company"
-				/>
-				<h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-					Criar Conta
-				</h2>
-			</div>
+		<main className="h-screen flex flex-row gap-6 items-center justify-center">
+			<FormProvider {...createUserForm}>
+				<form
+					onSubmit={handleSubmit(createUser)}
+					className="flex flex-col gap-4 w-full max-w-xs"
+				>
+					<Form.Field>
+						<Form.Label>Nome de Usuário</Form.Label>
+						<Form.Input type="text" name="username" />
+						<Form.ErrorMessage field="username"></Form.ErrorMessage>
+					</Form.Field>
 
-			<div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-				<form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-					<div>
-						<label className="block text-sm font-medium leading-6 text-gray-900">
-							Username
-						</label>
-						<div className="mt-2">
-							<input
-								{...register("username")}
-								className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 p-2"
-							/>
-						</div>
-					</div>
+					<Form.Field>
+						<Form.Label>Email</Form.Label>
+						<Form.Input type="text" name="email" />
+						<Form.ErrorMessage field="email"></Form.ErrorMessage>
+					</Form.Field>
 
-					<div>
-						<label className="block text-sm font-medium leading-6 text-gray-900">
-							Email
-						</label>
-						<div className="mt-2">
-							<input
-								{...register("email")}
-								className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 p-2"
-							/>
-						</div>
-					</div>
-
-					<div>
-						<div className="flex items-center justify-between">
-							<label className="block text-sm font-medium leading-6 text-gray-900">
-								Password
-							</label>
-						</div>
-						<div className="mt-2">
-							<input
-								{...register("password")}
-								type="password"
-								className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 p-2"
-							/>
-						</div>
-					</div>
-
-					<div>
-						<button
-							type="submit"
-							className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-						>
-							Criar Conta
-						</button>
-					</div>
+					<Form.Field>
+						<Form.Label>Senha</Form.Label>
+						<Form.Input type="password" name="password" />
+						<Form.ErrorMessage field="password"></Form.ErrorMessage>
+					</Form.Field>
+					<button
+						type="submit"
+						disabled={isSubmitting}
+						className="bg-violet-500 text-white rounded px-3 h-10 text-sm hover:bg-violet-600 font-semibold"
+					>
+						Criar Conta
+					</button>
 				</form>
-			</div>
-		</div>
+			</FormProvider>
+		</main>
 	);
 }
