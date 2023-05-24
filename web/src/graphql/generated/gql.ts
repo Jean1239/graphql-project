@@ -13,6 +13,9 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
+    "mutation CreatePost($title: String!) {\n  createPost(title: $title) {\n    id\n  }\n}": types.CreatePostDocument,
+    "query Hello {\n  hello\n}": types.HelloDocument,
+    "mutation Login($password: String!, $username: String!) {\n  login(password: $password, username: $username) {\n    accessToken\n    user {\n      username\n    }\n  }\n}": types.LoginDocument,
     "query Posts {\n  posts {\n    id\n    title\n  }\n}": types.PostsDocument,
     "mutation Register($email: String!, $password: String!, $username: String!) {\n  register(email: $email, password: $password, username: $username) {\n    accessToken\n    user {\n      id\n      username\n      email\n      created_at\n      updated_at\n    }\n  }\n}": types.RegisterDocument,
 };
@@ -31,6 +34,18 @@ const documents = {
  */
 export function graphql(source: string): unknown;
 
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation CreatePost($title: String!) {\n  createPost(title: $title) {\n    id\n  }\n}"): (typeof documents)["mutation CreatePost($title: String!) {\n  createPost(title: $title) {\n    id\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query Hello {\n  hello\n}"): (typeof documents)["query Hello {\n  hello\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation Login($password: String!, $username: String!) {\n  login(password: $password, username: $username) {\n    accessToken\n    user {\n      username\n    }\n  }\n}"): (typeof documents)["mutation Login($password: String!, $username: String!) {\n  login(password: $password, username: $username) {\n    accessToken\n    user {\n      username\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

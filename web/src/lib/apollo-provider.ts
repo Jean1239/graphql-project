@@ -11,11 +11,25 @@ import {
 	NextSSRInMemoryCache,
 	SSRMultipartLink,
 } from "@apollo/experimental-nextjs-app-support/ssr";
+import { setContext } from "@apollo/client/link/context";
+import { getAccessToken } from "./token";
 
 function makeClient() {
 	const httpLink = new HttpLink({
 		uri: "http://localhost:4000/graphql",
 		credentials: "include",
+	});
+
+	const authLink = setContext((_, { headers }) => {
+		// get the authentication token from local storage if it exists
+		const token = getAccessToken();
+		// return the headers to the context so httpLink can read them
+		return {
+			headers: {
+				...headers,
+				authorization: token ? `Bearer ${token}` : "",
+			},
+		};
 	});
 
 	return new ApolloClient({
@@ -26,9 +40,9 @@ function makeClient() {
 						new SSRMultipartLink({
 							stripDefer: true,
 						}),
-						httpLink,
+						authLink.concat(httpLink),
 				  ])
-				: httpLink,
+				: authLink.concat(httpLink),
 	});
 }
 

@@ -21,6 +21,8 @@ export default function RootLayout({
 				<div className="flex space-x-4 bg-cyan-300">
 					<Link href={"/"}>Home</Link>
 					<Link href={"/register"}>Register</Link>
+					<Link href={"/login"}>Login</Link>
+					<Link href={"/posts/create"}>Create Post</Link>
 				</div>
 				<ApolloWrapper>{children}</ApolloWrapper>
 			</body>
