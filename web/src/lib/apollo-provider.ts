@@ -12,7 +12,18 @@ import {
 	SSRMultipartLink,
 } from "@apollo/experimental-nextjs-app-support/ssr";
 import { setContext } from "@apollo/client/link/context";
-import { getAccessToken } from "./token";
+import { getAccessToken, setAccessToken } from "./token";
+
+async function getAccessTokenFromRefreshToken() {
+	const response = await fetch("http://localhost:4000/refresh_token", {
+		method: "POST",
+		credentials: "include",
+	});
+	const { ok, accessToken } = await response.json();
+	if (ok) {
+		setAccessToken(accessToken);
+	}
+}
 
 function makeClient() {
 	const httpLink = new HttpLink({
@@ -20,10 +31,10 @@ function makeClient() {
 		credentials: "include",
 	});
 
-	const authLink = setContext((_, { headers }) => {
-		// get the authentication token from local storage if it exists
+	const authLink = setContext(async (_, { headers }) => {
+		await getAccessTokenFromRefreshToken();
+		getAccessToken();
 		const token = getAccessToken();
-		// return the headers to the context so httpLink can read them
 		return {
 			headers: {
 				...headers,
